@@ -17,3 +17,7 @@ print(s)
 #Sets Does not contain Duplicates & set does not have order so you cannot use s[0]
 #List are same as ArrayList
 
+
+for people in l:
+    print(people)
+
