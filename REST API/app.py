@@ -1,57 +1,47 @@
 from flask import Flask,request
+import uuid
+from db import stores,items
 
 app=Flask(__name__)
 
-
-stores=[
-    {
-        "name":"MyStore",
-        "items":[
-            {
-                "name":"Monitor",
-                "price":20.99
-            }
-        ]
-    }
-]
-
 @app.get("/store")
 def getStore():
-    return {"Stores":stores},200
+    return {"stores":list(stores.values())}
+
 
 @app.post("/store")
 def createStore():
     request_data=request.get_json()
-    newStore={"name":request_data["name"],"items":[]}
-    stores.append(newStore)
+    store_id=uuid.uuid4().hex
+    newStore={**request_data,"id":store_id}
+    stores[store_id]=newStore
     return newStore,201
 
-@app.post("/store/<string:name>/item")
-def createItems(name):
+@app.post("/store/item")
+def createItems():
     request_data=request.get_json()
-    for store in stores:
-        if store["name"]==name:
-            new_item={
-                "name":request_data["name"],
-                "price":request_data["price"]
-            }
-            store["items"].append(new_item)
-            return new_item,201
-    return "Store Not Found",404
+    if request_data["store_id"] not in stores:
+        return "Store Not Found"
+    item_id=uuid.uuid4().hex
+    new_item={**request_data,"id":item_id}
+    items[item_id]=new_item
+    return new_item,201
 
 
-@app.get("/store/<string:name>")
-def getSingleStore(name):
-    for store in stores:
-        if store["name"]==name:
-            return store,202
-        
-    return "Store Not Found",404
+@app.get("/store/<string:store_id>")
+def getSingleStore(store_id):
+    try:
+        return stores[store_id]
+    except KeyError:
+        return "Store Not Found",404
+    
+@app.get("/store/<string:item_id>")
+def getItem(item_id):
+    try:
+        return items[item_id]
+    except KeyError:
+        return "Item Not Found",404
 
-@app.get("/store/<string:name>/items")
-def getAllItems(name):
-    for store in stores:
-        if store["name"]==name:
-            return {"items":store["items"]},200
-        
-    return "Store Not Found",404
+@app.get("/store/items")
+def getAllItems(): 
+    return {"items":list(items.values())}
