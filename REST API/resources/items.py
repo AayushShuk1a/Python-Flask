@@ -1,14 +1,15 @@
 import uuid
-from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint,abort
 from db import items,stores
+from schemas import itemSchema,itemUpdateSchema
 
 blp=Blueprint("Items",__name__,description="Operations on Items")
 
 
 @blp.route("/items/<string:item_id>")
 class Item(MethodView):
+    @blp.response(200,itemSchema)
     def get(self,item_id):
         try:
             return items[item_id]
@@ -22,14 +23,9 @@ class Item(MethodView):
         except KeyError:
             abort(404,message="Item not found")
 
-    def put(self,item_id):
-        request_data=request.get_json()
-        if(
-            "name" not in request_data
-            or "price" not in request_data
-        ):
-            abort(404,message="Ensure to add name and price in JSON payload")
-
+    @blp.arguments(itemUpdateSchema)
+    @blp.response(200,itemSchema)
+    def put(self,request_data,item_id):
         try:
             item=items[item_id]
             item|=request_data
@@ -40,17 +36,13 @@ class Item(MethodView):
 
 @blp.route("/items")
 class Items(MethodView):
+    @blp.response(200,itemSchema(many=True))
     def get(self):
-        return {"items":list(items.values())}
+        return items.values()
     
-    def post(self):
-        request_data=request.get_json()
-        if("name" not in request_data
-        or "price" not in request_data
-        or "store_id" not in request_data
-        ):
-            abort(404,message="Ensure name, pirce, store_id is mentioned in JSON data")
-        
+    @blp.arguments(itemSchema)
+    @blp.response(200,itemSchema)
+    def post(self,request_data):
         for item in items.values():
             if(item["name"]==request_data["name"]
             and item["store_id"]==request_data["store_id"]

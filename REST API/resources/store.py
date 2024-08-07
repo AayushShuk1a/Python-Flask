@@ -3,12 +3,14 @@ from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint,abort
 from db import stores
+from schemas import StoreSchema,updateStoreSchema
 
 blp=Blueprint("stores",__name__,description="Operations on stores")
 
 
 @blp.route("/store/<string:store_id>")
 class Store(MethodView):
+    @blp.response(200,StoreSchema)
     def get(self,store_id):
         try:
             return stores[store_id]
@@ -22,10 +24,9 @@ class Store(MethodView):
         except KeyError:
             abort(404,message="Store Not Found")
 
-    def put(self,store_id):
-        request_data=request.get_json()
-        if "name" not in request_data:
-            abort(404,message="Include Name in JSON payload")
+    @blp.arguments(updateStoreSchema)
+    @blp.response(200,StoreSchema)
+    def put(self,request_data,store_id):
         try:
             store=stores[store_id]
             store |= request_data
@@ -36,13 +37,13 @@ class Store(MethodView):
 
 @blp.route("/store")
 class StoreList(MethodView):
+    @blp.response(200,StoreSchema(many=True))
     def get(self):
-        return {"stores":list(stores.values())}
+        return stores.values()
     
-    def post(self):
-        request_data=request.get_json()
-        if "name" not in request_data:
-            abort(404,message="Name is not present in JSON")
+    @blp.arguments(StoreSchema)
+    @blp.response(200,StoreSchema)
+    def post(self,request_data):
         for store in stores.values():
             if request_data["name"]==store["name"]:
                 abort(404,"Store Aleady Exist")
