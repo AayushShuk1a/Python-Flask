@@ -19,8 +19,8 @@ class updateStoreSchema(Schema):
 
 class itemSchema(PlainitemSchema):
     store_id=fields.Int(required=True,load_only=True)
-    store=fields.Nested(PlainStoreSchema,dump_only=True)
+    stores=fields.Nested(PlainStoreSchema,dump_only=True)
 
 
-class storeSchema(PlainStoreSchema):
+class StoreSchema(PlainStoreSchema):
     items=fields.Nested(PlainitemSchema,dump_only=True)
