@@ -12,34 +12,34 @@ blp=Blueprint("Items",__name__,description="Operations on Items")
 class Item(MethodView):
     @blp.response(200,itemSchema)
     def get(self,item_id):
-        try:
-            return items[item_id]
-        except KeyError:
-            abort(404,message="Item not found")
+        item=ItemModel.query.get_or_404(item_id)
+        return item
 
     def delete(self,item_id):
-        try:
-            del items[item_id]
-            return {"message":"Item Deleted"}
-        except KeyError:
-            abort(404,message="Item not found")
+        item=ItemModel.query.get(item_id)
+        db.session.delete(item)
+        db.session.commit()
+        return "Item Deleted!!"
 
     @blp.arguments(itemUpdateSchema)
     @blp.response(200,itemSchema)
     def put(self,request_data,item_id):
-        try:
-            item=items[item_id]
-            item|=request_data
-            return item
-        except KeyError:
-            abort(404,message="Item Not Found")
-
+        item=ItemModel.query.get(item_id)
+        if item:
+            item.name=request_data["name"]
+            item.price=request_data["price"]
+        else:
+            item=ItemModel(id=item_id,**request_data)
+        
+        db.session.add(item)
+        db.session.commit()
+        return item
 
 @blp.route("/items")
 class Items(MethodView):
     @blp.response(200,itemSchema(many=True))
     def get(self):
-        return items.values()
+        return ItemModel.query.all()
     
     @blp.arguments(itemSchema)
     @blp.response(200,itemSchema)
