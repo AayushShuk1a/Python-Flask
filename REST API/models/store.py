@@ -5,4 +5,5 @@ class StoreModel(db.Model):
 
     id=db.Column(db.Integer,primary_key=True)
     name=db.Column(db.String(80),unique=True,nullable=False)
-    items=db.relationship("ItemModel",back_populates="stores",lazy="dynamic",cascade="all,delete")
+    items=db.relationship("ItemModel",back_populates="stores",lazy="select",cascade="all,delete")
+    tags=db.relationship("TagsModel",back_populates="stores",lazy="select",cascade="all,delete")
