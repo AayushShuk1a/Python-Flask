@@ -27,13 +27,20 @@ class updateTagSchema(Schema):
 
 class itemSchema(PlainitemSchema):
     store_id=fields.Int(required=True,load_only=True)
-    stores=fields.Nested(PlainStoreSchema,dump_only=True)
-
+    stores=fields.Nested(PlainStoreSchema(),dump_only=True)
+    tags=fields.List(fields.Nested(PlainTagsSchema(),dump_only=True))
+    
 
 class StoreSchema(PlainStoreSchema):
-    items=fields.Nested(PlainitemSchema,many=True,dump_only=True)
-    tags=fields.Nested(PlainTagsSchema,many=True,dump_only=True)
+    items=fields.List(fields.Nested(PlainitemSchema(),dump_only=True))
+    tags=fields.List(fields.Nested(PlainTagsSchema(),dump_only=True))
 
 class TagsSchema(PlainTagsSchema):
     store_id=fields.Int(load_only=True)
-    stores=fields.Nested(PlainStoreSchema,dump_only=True)
+    stores=fields.Nested(PlainStoreSchema(),dump_only=True)
+    items=fields.List(fields.Nested(PlainitemSchema(),dump_only=True))
+
+class TagAndItemSchema(Schema):
+    message=fields.Str()
+    item=fields.Nested(itemSchema)
+    tags=fields.Nested(TagsSchema)
