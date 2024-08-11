@@ -5,6 +5,7 @@ from resources.store import blp as StoresBlueprint
 from resources.tags import blp as TagsBlueprint
 from db import db
 import os
+from flask_jwt_extended import JWTManager
 
 
 
@@ -21,6 +22,9 @@ def create_app(db_url=None):
     app.config["SQLALCHEMY_DATABASE_URI"]=db_url or os.getenv("DATABASE_URL","sqlite:///data.db")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"]=False
     db.init_app(app)
+
+    app.config["JWT_SECRET_KEY"]="8169475793815650552307623615614161458"
+    jwt=JWTManager(app)
 
 
     with app.app_context():
