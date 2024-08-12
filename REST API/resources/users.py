@@ -4,7 +4,8 @@ from flask_smorest import Blueprint,abort
 from passlib.hash import pbkdf2_sha256
 from schemas import UserSchema
 from models import UserModel
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token,jwt_required,get_jwt
+from blocklist import BLOCKLIST
 
 
 blp=Blueprint("users",__name__,description="operations on users")
@@ -37,6 +38,18 @@ class UserLogin(MethodView):
             return {"Access Token":access_token}
         
         abort(401,message="Invalid Credintials")
+
+
+@blp.route("/logout")
+class logoutUser(MethodView):
+    @jwt_required()
+    def post(self):
+        jti=get_jwt()["jti"]
+        BLOCKLIST.add(jti)
+        return {"message":"Logout Successfull"},200
+        
+        
+
     
 
 @blp.route("/user/<int:user_id>")

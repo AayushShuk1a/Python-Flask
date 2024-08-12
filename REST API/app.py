@@ -7,6 +7,7 @@ from resources.users import blp as UserBlueprint
 from db import db
 import os
 from flask_jwt_extended import JWTManager
+from blocklist import BLOCKLIST
 
 
 
@@ -26,6 +27,18 @@ def create_app(db_url=None):
 
     app.config["JWT_SECRET_KEY"]="8169475793815650552307623615614161458"
     jwt=JWTManager(app)
+
+    @jwt.token_in_blocklist_loader
+    def check_if_token_in_blocklist(jwt_header,jwt_payload):
+        return jwt_payload["jti"] in BLOCKLIST
+    
+    @jwt.revoked_token_loader
+    def revoked_tokem_callback(jwt_header,jwt_payload):
+         return (
+            jsonify(
+                {"message":"The Token Has Been Revoked.","error":"Token Revoked"}
+            ),401
+        )
 
     @jwt.expired_token_loader
     def expired_token_callback(jwt_header,jwt_payload):
